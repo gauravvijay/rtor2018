@@ -24,7 +24,7 @@ void setup()
   // Wait a maximum of 10s for Serial Monitor
   while (!debugSerial && millis() < 10000)
     ;
-    // Put all sensors to low then delay
+  // Put all sensors to low then delay
   digitalWrite(xShutPin1, LOW);
   digitalWrite(xShutPin2, LOW);
   delay(10);
@@ -39,6 +39,7 @@ void setup()
     debugSerial.println(F("tof 1 failed"));
     while (1);
   }
+
   digitalWrite(xShutPin2, HIGH);
   delay(50);
 
@@ -51,28 +52,33 @@ void setup()
 
 void loop()
 {
-  VL53L0X_RangingMeasurementData_t measure1, measure2;
+  VL53L0X_RangingMeasurementData_t measure;
   bool sensor1 = false, sensor2 = false;
-  lox1.rangingTest(&measure1, false); // pass in 'true' to get debug data printout!
+  //  debugSerial.print("Reading a measurement from sensor 2... ");
+  lox1.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
 
-  if (measure1.RangeStatus != 4) {  // phase failures have incorrect data
-    sensor1 = true;
+  if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+//        debugSerial.print(F("Distance (mm): ")); debugSerial.println(measure.RangeMilliMeter);
+    if (measure.RangeMilliMeter < 150)
+      sensor1 = true;
+    else sensor1 = false;
   } else {
     sensor1 = false;
   }
 
   //  debugSerial.print("Reading a measurement from sensor 1... ");
-  lox2.rangingTest(&measure2, false); // pass in 'true' to get debug data printout!
+  lox2.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
 
-  if (measure2.RangeStatus != 4) {  // phase failures have incorrect data
-    //    debugSerial.print(F("Distance (mm): ")); debugSerial.println(measure2.RangeMilliMeter);
-    sensor2 = true;
+  if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+//        debugSerial.print(F("Distance (mm): ")); debugSerial.println(measure.RangeMilliMeter);
+    if (measure.RangeMilliMeter < 150)
+      sensor2 = true;
+    else sensor2 = false;
   } else {
-    //    debugSerial.println(" out of range ");
+//    debugSerial.println(" out of range ");
     sensor2 = false;
   }
-
-  record(sensor1, sensor2);
+  record(sensor2, sensor1);
 }
 
 void record(bool sensor1, bool sensor2) {
@@ -86,22 +92,22 @@ void record(bool sensor1, bool sensor2) {
   } else if (sensor2 && flag) { // Exiting
     state = 2;
   }
-
   switch (state) {
     case 1:
-    entries++;
-    transmissionSerial.write(entries);
+      entries++;
+      transmissionSerial.write(entries);
       debugSerial.println("ENtry recorded");
       flag = false;
       break;
     case 2:
-    exits++;
-    transmissionSerial.write(entries);
+      exits++;
+      transmissionSerial.write(entries);
       debugSerial.println("Exot recorded");
       flag = false;
       break;
     default: break;
   }
   state = 0;
-  delay(100);
+  delay(10);
 }
+
