@@ -1,5 +1,6 @@
 // This is the sender.
 #include "Adafruit_VL53L0X.h"
+//#include <SoftwareSerial.h>
 
 #define xShutPin1 4
 #define xShutPin2 5
@@ -9,6 +10,7 @@
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
 Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
+//SoftwareSerial transmissionSerial(10, 11);
 
 bool flag = false;
 short int state = -1;
@@ -41,7 +43,7 @@ void setup()
   }
 
   digitalWrite(xShutPin2, HIGH);
-  delay(50);
+  delay(20);
 
   if (!lox2.begin(0x29)) {
     debugSerial.println(F("tof 2 failed"));
@@ -59,7 +61,7 @@ void loop()
 
   if (measure.RangeStatus != 4) {  // phase failures have incorrect data
 //        debugSerial.print(F("Distance (mm): ")); debugSerial.println(measure.RangeMilliMeter);
-    if (measure.RangeMilliMeter < 150)
+    if (measure.RangeMilliMeter < 300)
       sensor1 = true;
     else sensor1 = false;
   } else {
@@ -71,14 +73,14 @@ void loop()
 
   if (measure.RangeStatus != 4) {  // phase failures have incorrect data
 //        debugSerial.print(F("Distance (mm): ")); debugSerial.println(measure.RangeMilliMeter);
-    if (measure.RangeMilliMeter < 150)
+    if (measure.RangeMilliMeter < 300)
       sensor2 = true;
     else sensor2 = false;
   } else {
 //    debugSerial.println(" out of range ");
     sensor2 = false;
   }
-  record(sensor2, sensor1);
+  record(sensor1, sensor2);
 }
 
 void record(bool sensor1, bool sensor2) {
@@ -87,22 +89,23 @@ void record(bool sensor1, bool sensor2) {
     if (sensor1 == false) {
       flag = true;
     }
-  } else if (sensor1 && flag) { // Entering
+  } else if (sensor1 == true && flag == true) { // Entering
     state = 1;
-  } else if (sensor2 && flag) { // Exiting
+  } else if (sensor2 == true && flag == true) { // Exiting
     state = 2;
   }
   switch (state) {
     case 1:
       entries++;
       transmissionSerial.write(entries);
-      debugSerial.println("ENtry recorded");
+      debugSerial.println("Entry recorded");
+      debugSerial.println(entries);
       flag = false;
       break;
     case 2:
       exits++;
-      transmissionSerial.write(entries);
-      debugSerial.println("Exot recorded");
+//      transmissionSerial.write(entries);
+      debugSerial.println("Exit recorded");
       flag = false;
       break;
     default: break;
