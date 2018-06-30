@@ -23,7 +23,7 @@ The results will be displayed using a google extension.
     3. `git push `
 5. synchronize with the remote repository 
     1. make sure the remote repository is added: 
-        1. ` git remote add upstream git://github.com/ORIGINAL-DEV-USERNAME/REPO-YOU-FORKED-FROM.git`
+        1. ` git remote add upstream git://github.com/gauravvijay/rtor2018.git   `
     2. fetch the changes: `git fetch upstream`
     3. Pull the changes: `git pull stream master`
 6. and finally make a pull request to the master stream. 
